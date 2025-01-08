@@ -21,7 +21,11 @@ const FileUploader = () => {
   };
 
   const handleConvert = async () => {
-    if (!file?.type.startsWith("image/")) return;
+    if (
+      !file?.type.startsWith("image/jpeg") &&
+      !file?.type.startsWith("image/png")
+    )
+      return;
 
     try {
       const thumbnail = await generateThumbnail(file, 100); // サムネイル生成

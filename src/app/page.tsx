@@ -2,6 +2,7 @@ import React from "react";
 import { HydrateClient } from "@/trpc/server";
 import FileViewer from "@/app/_components/FileViewer";
 import FileUploader from "@/app/_components/FileUploader";
+import FileLists from "@/app/_components/FileLists";
 
 export default async function Home() {
   return (
@@ -16,6 +17,7 @@ export default async function Home() {
           <h2 className="mb-4 text-xl font-semibold">View File</h2>
           <FileViewer />
         </section>
+        <FileLists></FileLists>
       </main>
     </HydrateClient>
   );

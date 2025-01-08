@@ -7,10 +7,7 @@ import "./src/env.js";
 /** @type {import("next").NextConfig} */
 const config = {
   images: {
-    domains: [
-      "t3chat-development.s3.ap-northeast-1.amazonaws.com",
-      "t3chat-development.s3.ap-northeast-1.amazonaws.com",
-    ],
+    domains: ["t3chat-development.s3.ap-northeast-1.amazonaws.com"],
   },
 };
 
