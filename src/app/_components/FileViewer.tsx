@@ -19,7 +19,11 @@ const FileViewer = () => {
 
   const handleView = () => {
     const lowerCaseUrl = url.toLowerCase();
-    if (lowerCaseUrl.endsWith(".jpg") || lowerCaseUrl.endsWith(".jpeg")) {
+    if (
+      lowerCaseUrl.endsWith(".jpg") ||
+      lowerCaseUrl.endsWith(".jpeg") ||
+      lowerCaseUrl.endsWith(".png")
+    ) {
       setFileType("image");
       setShowError(false); // 正しいファイルタイプならエラーを非表示
     } else if (lowerCaseUrl.endsWith(".pdf")) {
@@ -79,7 +83,7 @@ const FileViewer = () => {
       )}
       {showError && (
         <p className="text-red-500">
-          Invalid file type. Please enter a URL for a JPEG or PDF file.
+          Invalid file type. Please enter a URL for a JPEG/PNG or PDF file.
         </p>
       )}
     </div>
