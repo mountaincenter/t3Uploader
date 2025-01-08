@@ -7,8 +7,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// S3 へのアップロード関数
-export const uploadFileToS3 = async (file: File, keyPrefix: string) => {
+export const uploadFileToS3 = async (
+  file: File,
+  keyPrefix: string,
+  timestamp: string,
+) => {
   const s3Client = new S3Client({
     region: process.env.NEXT_PUBLIC_AWS_REGION,
     credentials: {
@@ -18,9 +21,10 @@ export const uploadFileToS3 = async (file: File, keyPrefix: string) => {
     forcePathStyle: true,
   });
 
+  const fileName = `${timestamp}-${file.name}`; // タイムスタンプを付与
   const params = {
     Bucket: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
-    Key: `${keyPrefix}/${file.name}`,
+    Key: `${keyPrefix}/${fileName}`,
     Body: file,
     ContentType: file.type,
   };
@@ -32,7 +36,6 @@ export const uploadFileToS3 = async (file: File, keyPrefix: string) => {
 // サムネイル生成関数
 export const generateThumbnail = async (
   file: File,
-  timestamp: string, // オリジナルのタイムスタンプを受け取る
   width: 100,
 ): Promise<File> => {
   const canvas = document.createElement("canvas");
@@ -53,8 +56,8 @@ export const generateThumbnail = async (
   return new Promise<File>((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) {
-        const baseName = file.name.replace(/\.[^/.]+$/, ""); // 拡張子を除いたファイル名
-        const newFileName = `${timestamp}-${baseName}-thumbnail.jpeg`; // サムネイル名を生成
+        const baseName = file.name.replace(/\.[^/.]+$/, ""); // 拡張子を除く
+        const newFileName = `${baseName}-thumbnail.jpeg`; // サムネイル名
         resolve(new File([blob], newFileName, { type: "image/jpeg" }));
       } else {
         reject(new Error("Failed to generate thumbnail"));
