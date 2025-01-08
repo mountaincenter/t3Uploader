@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { generateThumbnail, uploadFileToS3 } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 const FileUploader = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const inputRef = useRef<HTMLInputElement | null>(null); // input要素を参照するためのuseRef
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -18,63 +20,57 @@ const FileUploader = () => {
     }
   };
 
+  const handleConvert = async () => {
+    if (!file?.type.startsWith("image/")) return; // Lint対応済み
+
+    try {
+      const timestamp = Date.now().toString(); // オリジナル用タイムスタンプ
+      const originalFileName = `${timestamp}-${file.name}`;
+
+      // サムネイル生成時にタイムスタンプを渡す
+      const thumbnail = await generateThumbnail(file, timestamp, 100);
+      setThumbnailFile(thumbnail);
+
+      // オリジナルファイル名をセット
+      setFile(new File([file], originalFileName, { type: file.type }));
+    } catch (error) {
+      console.error("Thumbnail generation error:", error);
+    }
+  };
+
   const handleUpload = async () => {
     if (!file) return;
 
     setUploading(true);
+
     try {
-      const s3Client = new S3Client({
-        region: process.env.NEXT_PUBLIC_AWS_REGION,
-        credentials: {
-          accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID!,
-          secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY!,
-        },
-        forcePathStyle: true,
-      });
-
-      const params = {
-        Bucket: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
-        Key: `uploads/${Date.now()}-${file.name}`,
-        Body: file,
-        ContentType: file.type,
-      };
-
-      console.log("Uploading with params:", {
-        ...params,
-        Body: "File content (not logged)",
-        Bucket: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
-      });
-
-      const command = new PutObjectCommand(params);
-      const response = await s3Client.send(command);
-
-      console.log("Upload response:", response);
-
+      // オリジナルファイルをアップロード
+      await uploadFileToS3(file, "uploads/original");
       toast({
-        title: "File uploaded successfully",
-        description: `File ${file.name} has been uploaded to S3.`,
+        title: "Upload Successful",
+        description: `Original file "${file.name}" uploaded successfully.`,
       });
+
+      // サムネイルファイルがある場合のみアップロード
+      if (thumbnailFile) {
+        await uploadFileToS3(thumbnailFile, "uploads/thumbnail");
+        toast({
+          title: "Thumbnail Upload Successful",
+          description: `Thumbnail "${thumbnailFile.name}" uploaded successfully.`,
+        });
+      }
     } catch (error) {
       console.error("Upload error:", error);
-      let errorMessage = "There was an error uploading your file to S3.";
-
-      if (error instanceof Error) {
-        errorMessage += ` Error: ${error.message}`;
-      }
-
       toast({
-        title: "Upload failed",
-        description: errorMessage,
+        title: "Upload Failed",
+        description: "There was an error uploading your files to S3.",
         variant: "destructive",
       });
     } finally {
       setUploading(false);
       setFile(null);
-
-      // Inputタグをクリア
-      if (inputRef.current) {
-        inputRef.current.value = ""; // inputの値をリセット
-      }
+      setThumbnailFile(null);
+      if (inputRef.current) inputRef.current.value = ""; // Inputをリセット
     }
   };
 
@@ -83,12 +79,46 @@ const FileUploader = () => {
       <Input
         type="file"
         onChange={handleFileChange}
-        ref={inputRef} // input要素を参照
+        ref={inputRef}
         disabled={uploading}
       />
-      <Button onClick={handleUpload} disabled={!file || uploading}>
-        {uploading ? "Uploading..." : "Upload to S3"}
-      </Button>
+      <div className="flex gap-4">
+        <Button
+          onClick={handleConvert}
+          disabled={!file || uploading || !file?.type.startsWith("image/")}
+        >
+          Convert Thumbnail
+        </Button>
+        <Button onClick={handleUpload} disabled={!file || uploading}>
+          {uploading ? "Uploading..." : "Upload to S3"}
+        </Button>
+      </div>
+      {file && (
+        <div>
+          <p>Original File: {file.name}</p>
+          {file.type.startsWith("image/") ? (
+            <Image
+              src={URL.createObjectURL(file)}
+              alt="Original"
+              width={300}
+              height={300}
+            />
+          ) : (
+            <p>PDF File: {file.name}</p>
+          )}
+        </div>
+      )}
+      {thumbnailFile && (
+        <div>
+          <p>Thumbnail File: {thumbnailFile.name}</p>
+          <Image
+            src={URL.createObjectURL(thumbnailFile)}
+            alt="Thumbnail"
+            width={100}
+            height={100}
+          />
+        </div>
+      )}
     </div>
   );
 };
