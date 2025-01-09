@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { generateThumbnail } from "@/lib/utils";
-import UploadButton from "./UploadButton";
+import { generateThumbnail } from "@/lib/thumbnail";
+import UploadButton from "../UploadButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";

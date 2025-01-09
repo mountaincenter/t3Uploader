@@ -3,15 +3,15 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { FileText, File } from "lucide-react";
-import DeleteButton from "../../components/DeleteButton"; // DeleteButtonをインポート
+import { FileText, File as FileIcon } from "lucide-react";
+import DeleteButton from "../DeleteButton"; // DeleteButtonをインポート
 import type { File as FileType } from "@prisma/client";
 
-interface FileListProps {
+interface FileDetailProps {
   file: FileType;
 }
 
-const FileList: React.FC<FileListProps> = ({ file }) => {
+const FileDetail: React.FC<FileDetailProps> = ({ file }) => {
   return (
     <li className="rounded-lg border border-gray-200 bg-white p-4 shadow transition-shadow hover:shadow-md">
       <div className="space-y-2">
@@ -26,7 +26,11 @@ const FileList: React.FC<FileListProps> = ({ file }) => {
           />
         ) : (
           <div className="flex h-36 items-center justify-center rounded bg-gray-100 text-gray-500">
-            {file.type === "PDF" ? <FileText size={40} /> : <File size={40} />}
+            {file.type === "PDF" ? (
+              <FileText size={40} />
+            ) : (
+              <FileIcon size={40} />
+            )}
           </div>
         )}
 
@@ -61,4 +65,4 @@ const FileList: React.FC<FileListProps> = ({ file }) => {
   );
 };
 
-export default FileList;
+export default FileDetail;

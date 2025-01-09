@@ -1,9 +1,9 @@
 "use client";
 
-import { uploadFileToS3 } from "@/lib/utils";
+import { uploadFileToS3 } from "@/lib/s3";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { useFileMutation } from "@/app/hooks/useFileMutation";
+import { useFileMutation } from "@/app/components/hooks/useFileMutation";
 
 interface UploadButtonProps {
   file: File;

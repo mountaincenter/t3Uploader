@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useFileMutation } from "@/app/hooks/useFileMutation";
+import { useFileMutation } from "@/app/components/hooks/useFileMutation";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import DeleteButton from "@/components/DeleteButton";
+import DeleteButton from "@/app/components/DeleteButton";
 
 const FileDetailPage = () => {
   const params = useParams();

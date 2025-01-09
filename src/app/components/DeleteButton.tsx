@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { deleteFileToS3 } from "@/lib/utils";
-import { useFileMutation } from "@/app/hooks/useFileMutation";
+import { deleteFileToS3 } from "@/lib/s3";
+import { useFileMutation } from "@/app/components/hooks/useFileMutation";
 
 interface DeleteButtonProps {
   fileId: string;

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
-import { fileHandler } from "../handlers/fileHandler";
+import { fileHandler } from "../services/fileHandler";
 
 export const fileRouter = createTRPCRouter({
   // ファイルのアップロード情報をデータベースに登録
