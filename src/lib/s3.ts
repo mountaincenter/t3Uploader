@@ -2,6 +2,7 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { AWS_CONFIG } from "@/constants/awsConfig";
 
@@ -36,4 +37,15 @@ export const deleteFileToS3 = async (key: string) => {
 
   const command = new DeleteObjectCommand(params);
   await s3Client.send(command);
+};
+
+export const listFilesInS3 = async (prefix: string) => {
+  const params = {
+    Bucket: process.env.NEXT_PUBLIC_S3_BUCKET_NAME!,
+    Prefix: prefix,
+  };
+
+  const command = new ListObjectsV2Command(params);
+  const response = await s3Client.send(command);
+  return response.Contents ?? [];
 };

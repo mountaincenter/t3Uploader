@@ -62,4 +62,23 @@ export const fileHandler = {
       throw new Error("Could not delete file");
     }
   },
+
+  // 30日以上前にアップロードされたファイルを取得
+  getOldFilesFromDatabase: async () => {
+    const thresholdDate = new Date();
+    thresholdDate.setDate(thresholdDate.getMinutes() - 10);
+
+    return await prisma.file.findMany({
+      where: {
+        createdAt: {
+          lt: thresholdDate,
+        },
+      },
+      select: {
+        id: true,
+        originalUrl: true,
+        thumbnailUrl: true,
+      },
+    });
+  },
 };
