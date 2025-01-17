@@ -66,7 +66,7 @@ export const fileHandler = {
   // 30日以上前にアップロードされたファイルを取得
   getOldFilesFromDatabase: async () => {
     const thresholdDate = new Date();
-    thresholdDate.setDate(thresholdDate.getMinutes() - 10);
+    thresholdDate.setMinutes(thresholdDate.getMinutes() - 10);
 
     return await prisma.file.findMany({
       where: {
