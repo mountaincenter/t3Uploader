@@ -1,0 +1,14 @@
+{
+  "routes": [
+    {
+      "src": "/api/cron",
+      "dest": "src/app/api/cron/route.ts"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "*/1 * * * *"
+    }
+  ]
+}
