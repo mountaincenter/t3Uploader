@@ -3,28 +3,29 @@
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useFileMutation } from "@/app/components/hooks/useFileMutation";
+import { useSelectedFile } from "@/app/components/hooks/useSelectedFile";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import DeleteButton from "@/app/components/DeleteButton";
+import FileViewer from "@/app/components/files/FileDetailViewer";
 
 const FileDetailPage = () => {
   const params = useParams();
   const router = useRouter();
   const fileId = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  const { file, setSelectedFile, isLoading, files } = useFileMutation();
+  const { files, isLoading: isFilesLoading } = useFileMutation(); // ファイルリストを取得
+  const { file, isLoading: isFileLoading, setSelectedFile } = useSelectedFile(); // 選択ファイル
 
-  // fileIdを元にファイルを取得して設定
   useEffect(() => {
     if (fileId) {
-      const selectedFile = files?.find((f) => f.id === fileId); // filesリストから検索
+      const selectedFile = files?.find((f) => f.id === fileId);
       if (selectedFile) {
-        setSelectedFile(selectedFile); // 完全な型のデータを渡す
+        setSelectedFile(selectedFile);
       }
     }
   }, [fileId, files, setSelectedFile]);
 
-  if (isLoading) {
+  if (isFilesLoading || isFileLoading) {
     return <p className="text-center text-gray-500">Loading file...</p>;
   }
 
@@ -33,28 +34,21 @@ const FileDetailPage = () => {
   }
 
   return (
-    <div className="container mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-lg">
+    <div className="container mx-auto max-w-6xl rounded-lg bg-white p-6 shadow-lg">
       <h1 className="mb-6 text-3xl font-extrabold tracking-tight text-gray-800">
-        {file.originalUrl?.split("/").pop()}
+        {file.originalUrl?.split("/").pop() ??
+          file.thumbnailUrl?.split("/").pop()}
       </h1>
-      <div className="mb-6 flex justify-center">
-        {file.type === "PDF" ? (
-          <iframe
-            src={file.originalUrl!}
-            className="h-[600px] w-full rounded-md border border-gray-300 shadow-sm"
-            title="PDF Viewer"
-          />
-        ) : (
-          <Image
-            src={file.originalUrl!}
-            alt="Original File"
-            width={600}
-            height={600}
-            className="rounded-md shadow-lg"
-          />
-        )}
+      <div className="flex items-center justify-center">
+        <FileViewer
+          originalUrl={file.originalUrl}
+          thumbnailUrl={file.thumbnailUrl}
+          fileType={file.type}
+          width="600px" // 任意の幅を指定
+          height="700px" // 任意の高さを指定
+        />
       </div>
-      <div className="flex justify-center gap-4">
+      <div className="mt-6 flex justify-center gap-4">
         <Button
           variant="outline"
           className="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"

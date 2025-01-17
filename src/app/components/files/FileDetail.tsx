@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { FileText, File as FileIcon } from "lucide-react";
 import DeleteButton from "../DeleteButton"; // DeleteButtonをインポート
+import DialogDetailViewer from "./DialogViewer"; // DialogViewerをインポート
 import type { File as FileType } from "@prisma/client";
 
 interface FileDetailProps {
@@ -12,6 +13,8 @@ interface FileDetailProps {
 }
 
 const FileDetail: React.FC<FileDetailProps> = ({ file }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   return (
     <li className="rounded-lg border border-gray-200 bg-white p-4 shadow transition-shadow hover:shadow-md">
       <div className="space-y-2">
@@ -23,9 +26,13 @@ const FileDetail: React.FC<FileDetailProps> = ({ file }) => {
             width={150}
             height={150}
             className="mx-auto cursor-pointer rounded"
+            onClick={() => setIsDialogOpen(true)} // Dialogを開く
           />
         ) : (
-          <div className="flex h-36 items-center justify-center rounded bg-gray-100 text-gray-500">
+          <div
+            className="flex h-36 cursor-pointer items-center justify-center rounded bg-gray-100 text-gray-500"
+            onClick={() => setIsDialogOpen(true)} // Dialogを開く
+          >
             {file.type === "PDF" ? (
               <FileText size={40} />
             ) : (
@@ -37,7 +44,9 @@ const FileDetail: React.FC<FileDetailProps> = ({ file }) => {
         {/* File Name */}
         <div className="text-center">
           <p className="truncate text-sm text-gray-700">
-            {file.originalUrl?.split("/").pop()}
+            {file.originalUrl
+              ? file.originalUrl.split("/").pop()
+              : file.thumbnailUrl?.split("/").pop()}
           </p>
         </div>
 
@@ -46,7 +55,7 @@ const FileDetail: React.FC<FileDetailProps> = ({ file }) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => (window.location.href = `/${file.id}`)} // 動的ルーティング
+            onClick={() => (window.location.href = `/${file.id}`)} // [id]/page.tsxへのルーティング
           >
             View
           </Button>
@@ -61,6 +70,15 @@ const FileDetail: React.FC<FileDetailProps> = ({ file }) => {
           />
         </div>
       </div>
+
+      {/* DialogViewer */}
+      <DialogDetailViewer
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)} // Dialogを閉じる
+        originalUrl={file.originalUrl}
+        thumbnailUrl={file.thumbnailUrl}
+        fileType={file.type}
+      />
     </li>
   );
 };
