@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { File as FileIcon } from "lucide-react";
+import UploadButton from "../UploadButton";
 
 const FilesUploader = () => {
   const [files, setFiles] = useState<File[]>([]); // 選択されたファイル
@@ -74,11 +75,6 @@ const FilesUploader = () => {
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const handleUploadAll = async () => {
-    console.log("Uploading all files...");
-    // 一括アップロードの処理をここに追加
-  };
-
   return (
     <div className="space-y-4">
       {/* ファイル入力 */}
@@ -90,21 +86,23 @@ const FilesUploader = () => {
         accept="image/jpeg,image/png,application/pdf"
       />
 
+      {/* ボタン類 */}
       {files.length > 0 && (
-        <div className="flex gap-4">
-          {/* ボタン類 */}
+        <div className="mt-4 flex gap-4">
           <Button onClick={resetInputs} variant="outline">
             Reset
           </Button>
-          <Button onClick={handleUploadAll} variant="default">
-            Upload All Files
-          </Button>
+          <UploadButton
+            files={files}
+            thumbnails={thumbnails}
+            onUploadComplete={resetInputs}
+          />
         </div>
       )}
 
       {/* サムネイルまたはアイコンの表示 */}
       {files.length > 0 && (
-        <div className="space-y-4">
+        <div className="mt-4 space-y-4">
           <h2 className="text-lg font-bold">Files:</h2>
           <ul className="space-y-4">
             {files.map((file) => (
