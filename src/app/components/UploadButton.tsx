@@ -6,66 +6,76 @@ import { toast } from "@/hooks/use-toast";
 import { useFileMutation } from "@/app/components/hooks/useFileMutation";
 
 interface UploadButtonProps {
-  file: File;
-  thumbnailFile?: File | null;
+  files: File[];
+  thumbnails: Map<string, File | null>;
   onUploadComplete: () => void; // アップロード完了時のリセット
 }
 
 const UploadButton = ({
-  file,
-  thumbnailFile,
+  files,
+  thumbnails,
   onUploadComplete,
 }: UploadButtonProps) => {
   const { createFile } = useFileMutation();
 
-  const handleUpload = async () => {
-    const timestamp = Date.now().toString();
-    const keyPrefixOriginal = "uploads/original";
-    const keyPrefixThumbnail = "uploads/thumbnail";
+  const handleUploadAll = async () => {
+    if (files.length === 0) {
+      toast({
+        title: "No Files Selected",
+        description: "Please select files to upload.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      // オリジナルファイルのアップロード
-      const originalKey = `${keyPrefixOriginal}/${timestamp}-${file.name}`;
-      await uploadFileToS3(file, keyPrefixOriginal, timestamp);
-      toast({
-        title: "Original Upload Successful",
-        description: `Original file "${file.name}" uploaded successfully.`,
-      });
+      const timestamp = Date.now().toString();
+      const keyPrefixOriginal = "uploads/original";
+      const keyPrefixThumbnail = "uploads/thumbnail";
 
-      // サムネイルファイルがある場合のみアップロード
-      let thumbnailKey: string | undefined = undefined;
-      if (thumbnailFile) {
-        thumbnailKey = `${keyPrefixThumbnail}/${timestamp}-${thumbnailFile.name}`;
-        await uploadFileToS3(thumbnailFile, keyPrefixThumbnail, timestamp);
+      for (const file of files) {
+        // オリジナルファイルのアップロード
+        const originalKey = `${keyPrefixOriginal}/${timestamp}-${file.name}`;
+        await uploadFileToS3(file, keyPrefixOriginal, timestamp);
         toast({
-          title: "Thumbnail Upload Successful",
-          description: `Thumbnail "${thumbnailFile.name}" uploaded successfully.`,
+          title: "Original Upload Successful",
+          description: `Original file "${file.name}" uploaded successfully.`,
+        });
+
+        // サムネイルファイルがある場合のみアップロード
+        const thumbnail = thumbnails.get(file.name);
+        let thumbnailKey: string | undefined;
+        if (thumbnail) {
+          thumbnailKey = `${keyPrefixThumbnail}/${timestamp}-${thumbnail.name}`;
+          await uploadFileToS3(thumbnail, keyPrefixThumbnail, timestamp);
+          toast({
+            title: "Thumbnail Upload Successful",
+            description: `Thumbnail "${thumbnail.name}" uploaded successfully.`,
+          });
+        }
+
+        // データベース登録
+        const fileType = file.type === "application/pdf" ? "PDF" : "JPEG";
+        await createFile(originalKey, fileType, thumbnailKey);
+
+        toast({
+          title: "File Registered",
+          description: `File "${file.name}" registered successfully.`,
         });
       }
 
-      // データベースに登録
-      const fileType = file.type === "application/pdf" ? "PDF" : "JPEG"; // ファイルタイプを判別
-      await createFile(originalKey, fileType, thumbnailKey);
-
-      toast({
-        title: "File Registered",
-        description: "File information has been successfully registered.",
-      });
-
-      // 入力のリセット
       onUploadComplete();
     } catch (error) {
       console.error("Upload error:", error);
       toast({
         title: "Upload Failed",
-        description:
-          "There was an error uploading your files or registering them in the database.",
+        description: "There was an error uploading your files.",
         variant: "destructive",
       });
     }
   };
 
-  return <Button onClick={handleUpload}>Upload to S3 and Register</Button>;
+  return <Button onClick={handleUploadAll}>Upload All Files</Button>;
 };
 
 export default UploadButton;
