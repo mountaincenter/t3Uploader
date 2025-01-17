@@ -81,4 +81,18 @@ export const fileHandler = {
       },
     });
   },
+
+  updateFileToRemoveOriginal: async (id: string) => {
+    try {
+      return await prisma.file.update({
+        where: { id },
+        data: {
+          originalUrl: null, // originalUrl を削除
+        },
+      });
+    } catch (error) {
+      console.error(`Error updating file ${id}:`, error);
+      throw new Error("Could not update file");
+    }
+  },
 };

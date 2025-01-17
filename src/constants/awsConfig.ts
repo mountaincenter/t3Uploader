@@ -5,4 +5,5 @@ export const AWS_CONFIG = {
     secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY!,
   },
   bucketName: process.env.NEXT_PUBLIC_S3_BUCKET_NAME!,
+  bucketUrl: `https://${process.env.NEXT_PUBLIC_S3_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/`,
 };
