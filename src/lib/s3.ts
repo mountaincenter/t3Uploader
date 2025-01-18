@@ -15,8 +15,12 @@ export const uploadFileToS3 = async (
   file: File,
   keyPrefix: string,
   timestamp: string,
+  progressHandler?: (progress: number) => void, // 進行状況を更新するコールバック関数
 ) => {
   const fileName = `${timestamp}-${file.name}`;
+  const totalSize = file.size;
+  let uploadedBytes = 0;
+
   const params = {
     Bucket: AWS_CONFIG.bucketName,
     Key: `${keyPrefix}/${fileName}`,
@@ -25,11 +29,26 @@ export const uploadFileToS3 = async (
   };
 
   const command = new PutObjectCommand(params);
+
+  // プログレスハンドラー
+  s3Client.middlewareStack.add(
+    (next) => async (args) => {
+      const response = await next(args);
+      uploadedBytes += totalSize;
+      if (progressHandler) {
+        progressHandler(Math.min((uploadedBytes / totalSize) * 100, 100));
+      }
+      return response;
+    },
+    {
+      step: "build",
+    },
+  );
+
   return s3Client.send(command);
 };
 
 export const deleteFileToS3 = async (key: string) => {
-  console.log("Attempting to delete key:", key);
   const params = {
     Bucket: AWS_CONFIG.bucketName,
     Key: key,

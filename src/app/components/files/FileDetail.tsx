@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { FileText, File as FileIcon } from "lucide-react";
-import DeleteButton from "../DeleteButton"; // DeleteButtonをインポート
-import DialogDetailViewer from "./DialogViewer"; // DialogViewerをインポート
+import DeleteButton from "../DeleteButton";
+import DialogDetailViewer from "./DialogViewer";
+import { useFileMutation } from "@/app/components/hooks/useFileMutation"; // カスタムフックをインポート
 import type { File as FileType } from "@prisma/client";
 
 interface FileDetailProps {
@@ -14,6 +15,11 @@ interface FileDetailProps {
 
 const FileDetail: React.FC<FileDetailProps> = ({ file }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { isLoading } = useFileMutation(); // カスタムフックからローディング状態を取得
+
+  const handleDialogOpen = () => {
+    setIsDialogOpen(true);
+  };
 
   return (
     <li className="rounded-lg border border-gray-200 bg-white p-4 shadow transition-shadow hover:shadow-md">
@@ -26,12 +32,12 @@ const FileDetail: React.FC<FileDetailProps> = ({ file }) => {
             width={150}
             height={150}
             className="mx-auto cursor-pointer rounded"
-            onClick={() => setIsDialogOpen(true)} // Dialogを開く
+            onClick={handleDialogOpen} // Dialogを開く
           />
         ) : (
           <div
             className="flex h-36 cursor-pointer items-center justify-center rounded bg-gray-100 text-gray-500"
-            onClick={() => setIsDialogOpen(true)} // Dialogを開く
+            onClick={handleDialogOpen} // Dialogを開く
           >
             {file.type === "PDF" ? (
               <FileText size={40} />
@@ -55,7 +61,7 @@ const FileDetail: React.FC<FileDetailProps> = ({ file }) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => (window.location.href = `/${file.id}`)} // [id]/page.tsxへのルーティング
+            onClick={() => (window.location.href = `/${file.id}`)}
           >
             View
           </Button>
@@ -74,10 +80,11 @@ const FileDetail: React.FC<FileDetailProps> = ({ file }) => {
       {/* DialogViewer */}
       <DialogDetailViewer
         isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)} // Dialogを閉じる
+        onClose={() => setIsDialogOpen(false)}
         originalUrl={file.originalUrl}
         thumbnailUrl={file.thumbnailUrl}
         fileType={file.type}
+        isLoading={isLoading} // ローディング状態を渡す
       />
     </li>
   );
