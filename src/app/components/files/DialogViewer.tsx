@@ -7,7 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { FileType } from "@prisma/client"; // PrismaのFileTypeをインポート
+import { Skeleton } from "@/components/ui/skeleton";
+import type { FileType } from "@prisma/client";
 import FileDetailViewer from "@/app/components/files/FileDetailViewer";
 
 interface DialogViewerProps {
@@ -16,6 +17,7 @@ interface DialogViewerProps {
   originalUrl: string | null;
   thumbnailUrl: string | null;
   fileType: FileType;
+  isLoading: boolean; // ローディング状態
 }
 
 const DialogViewer: React.FC<DialogViewerProps> = ({
@@ -24,6 +26,7 @@ const DialogViewer: React.FC<DialogViewerProps> = ({
   originalUrl,
   thumbnailUrl,
   fileType,
+  isLoading,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -31,11 +34,18 @@ const DialogViewer: React.FC<DialogViewerProps> = ({
         <DialogHeader>
           <DialogTitle>File Viewer</DialogTitle>
         </DialogHeader>
-        <FileDetailViewer
-          originalUrl={originalUrl}
-          thumbnailUrl={thumbnailUrl}
-          fileType={fileType}
-        />
+
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-96 w-full rounded-md" />
+          </div>
+        ) : (
+          <FileDetailViewer
+            originalUrl={originalUrl}
+            thumbnailUrl={thumbnailUrl}
+            fileType={fileType}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

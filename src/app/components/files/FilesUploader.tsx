@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { generateThumbnail } from "@/lib/thumbnail";
+import { validateFiles } from "@/lib/validation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
@@ -10,62 +11,57 @@ import { File as FileIcon } from "lucide-react";
 import UploadButton from "../UploadButton";
 
 const FilesUploader = () => {
-  const [files, setFiles] = useState<File[]>([]); // 選択されたファイル
+  const [files, setFiles] = useState<File[]>([]);
   const [thumbnails, setThumbnails] = useState<Map<string, File | null>>(
     new Map(),
-  ); // サムネイル
+  );
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
 
-    // 一度に最大4枚の制限
-    if (selectedFiles.length > 4) {
+    // ファイル検証
+    const { validFiles, errors } = validateFiles(selectedFiles);
+
+    // エラーをトーストで表示
+    if (errors.length > 0) {
       toast({
-        title: "File Limit Exceeded",
-        description: "You can upload up to 4 files at once.",
+        title: "Validation Error",
+        description: errors.join(", "),
         variant: "destructive",
       });
+    }
+
+    // 有効なファイルがない場合は入力をリセット
+    if (validFiles.length === 0) {
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
       return;
     }
 
     const newThumbnails = new Map<string, File | null>();
 
-    // ファイルを処理
-    for (const file of selectedFiles) {
-      if (
-        file.type.startsWith("image/jpeg") ||
-        file.type.startsWith("image/png")
-      ) {
+    // サムネイル生成
+    for (const file of validFiles) {
+      if (file.type === "image/jpeg" || file.type === "image/png") {
         try {
-          const thumbnail = await generateThumbnail(file, 100); // サムネイル生成
+          const thumbnail = await generateThumbnail(file, 100);
           newThumbnails.set(file.name, thumbnail);
-
-          // コンソールに表示
-          console.log("Original File:", file.name);
-          console.log("Thumbnail File:", thumbnail.name);
-        } catch (error) {
-          console.error("Thumbnail generation error:", error);
+        } catch {
           toast({
-            title: "Error",
+            title: "Thumbnail Error",
             description: `Failed to generate thumbnail for ${file.name}.`,
             variant: "destructive",
           });
         }
-      } else if (file.type === "application/pdf") {
-        newThumbnails.set(file.name, null); // PDFはサムネイル不要
-        console.log("Original File:", file.name);
-        console.log("Thumbnail File: (none, PDF uses icon)");
       } else {
-        toast({
-          title: "Unsupported File",
-          description: `${file.name} is not supported.`,
-          variant: "destructive",
-        });
+        newThumbnails.set(file.name, null); // PDFはサムネイル不要
       }
     }
 
-    setFiles(selectedFiles); // 新しい選択ファイルで上書き
+    // 新しいファイルリストをセット（エラーがなかったもののみ）
+    setFiles(validFiles);
     setThumbnails(newThumbnails);
   };
 
@@ -77,7 +73,6 @@ const FilesUploader = () => {
 
   return (
     <div className="space-y-4">
-      {/* ファイル入力 */}
       <Input
         type="file"
         multiple
@@ -86,7 +81,6 @@ const FilesUploader = () => {
         accept="image/jpeg,image/png,application/pdf"
       />
 
-      {/* ボタン類 */}
       {files.length > 0 && (
         <div className="mt-4 flex gap-4">
           <Button onClick={resetInputs} variant="outline">
@@ -100,7 +94,6 @@ const FilesUploader = () => {
         </div>
       )}
 
-      {/* サムネイルまたはアイコンの表示 */}
       {files.length > 0 && (
         <div className="mt-4 space-y-4">
           <h2 className="text-lg font-bold">Files:</h2>

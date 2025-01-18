@@ -7,6 +7,7 @@ import { useSelectedFile } from "@/app/components/hooks/useSelectedFile";
 import { Button } from "@/components/ui/button";
 import DeleteButton from "@/app/components/DeleteButton";
 import FileViewer from "@/app/components/files/FileDetailViewer";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const FileDetailPage = () => {
   const params = useParams();
@@ -26,7 +27,23 @@ const FileDetailPage = () => {
   }, [fileId, files, setSelectedFile]);
 
   if (isFilesLoading || isFileLoading) {
-    return <p className="text-center text-gray-500">Loading file...</p>;
+    return (
+      <div className="space-y-6 p-6">
+        {/* タイトルのスケルトン */}
+        <Skeleton className="mx-auto h-8 w-3/5 rounded-md" />
+
+        {/* ファイルビューのスケルトン */}
+        <div className="flex justify-center">
+          <Skeleton className="h-[700px] w-[600px] rounded-lg shadow-md" />
+        </div>
+
+        {/* アクションボタンのスケルトン */}
+        <div className="mt-6 flex justify-center gap-6">
+          <Skeleton className="h-10 w-28 rounded-md" />
+          <Skeleton className="h-10 w-28 rounded-md" />
+        </div>
+      </div>
+    );
   }
 
   if (!file) {

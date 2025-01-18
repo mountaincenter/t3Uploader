@@ -4,11 +4,12 @@ import { uploadFileToS3 } from "@/lib/s3";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useFileMutation } from "@/app/components/hooks/useFileMutation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface UploadButtonProps {
   files: File[];
   thumbnails: Map<string, File | null>;
-  onUploadComplete: () => void; // アップロード完了時のリセット
+  onUploadComplete: () => void;
 }
 
 const UploadButton = ({
@@ -16,7 +17,7 @@ const UploadButton = ({
   thumbnails,
   onUploadComplete,
 }: UploadButtonProps) => {
-  const { createFile } = useFileMutation();
+  const { createFile, isLoading: isMutationLoading } = useFileMutation(); // useFileMutationからisLoadingを取得
 
   const handleUploadAll = async () => {
     if (files.length === 0) {
@@ -75,7 +76,19 @@ const UploadButton = ({
     }
   };
 
-  return <Button onClick={handleUploadAll}>Upload All Files</Button>;
+  console.log("isMutationLoading", isMutationLoading);
+
+  return (
+    <div>
+      <div>
+        {isMutationLoading ? (
+          <Skeleton className="h-10 w-full rounded-md" />
+        ) : (
+          <Button onClick={handleUploadAll}>Upload All Files</Button>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default UploadButton;
